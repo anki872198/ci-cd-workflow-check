@@ -15,5 +15,6 @@ jobs:
         id: checkout
         with:
           fetch-depth: 0
-      - run: |
-          echo ${{github.event.client_payload}}
+      - run: echo $JSON
+        env:
+          JSON: ${{ toJSON(github) }}
