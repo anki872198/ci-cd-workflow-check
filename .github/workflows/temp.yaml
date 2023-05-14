@@ -16,4 +16,4 @@ jobs:
         with:
           fetch-depth: 0
       - run: |
-          echo ${{github.event}}
+          echo ${{toJSON(github.event)}}
