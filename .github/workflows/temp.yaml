@@ -16,4 +16,4 @@ jobs:
         with:
           fetch-depth: 0
       - run: |
-          echo ${{github.event.client_payload.foo}}
+          echo ${{github.event.client_payload.environment}} ${{github.event.client_payload.subgraph}}
