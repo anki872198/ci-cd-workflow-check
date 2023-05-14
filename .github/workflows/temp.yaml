@@ -1,0 +1,40 @@
+---
+name: Release Sentry
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: choice
+        description: Environment to Release Sentry
+        required: true
+        options:
+          - production
+          - sandbox
+jobs:
+  sentry-release:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v3
+        id: checkout
+        with:
+          fetch-depth: 0
+      - name: Get Release Tag
+        id: get_tag
+        run: echo "tag=$(echo ${GITHUB_REF#refs/heads/})" >>$GITHUB_OUTPUT
+        shell: bash
+
+      - name: Sentry Release
+        uses: getsentry/action-release@v1.4.1
+        if: steps.get_tag.outputs.tag
+        env:
+          tag: ${{steps.get_tag.outputs.tag}}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ vars.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT}}
+        with:
+          version: ${{steps.get_tag.outputs.tag}}
+          environment: ${{inputs.environment}}
