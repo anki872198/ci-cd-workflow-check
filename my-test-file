@@ -1,0 +1,82 @@
+// run();
+
+// const services = "account-service, orderbook-service";
+// const environment = Environment.Staging;
+// const options = {
+//   createPR: false,
+//   token: "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",
+//   repo: "anki872198/CI-CD-Check-Branch",
+//   labels: "staging-tags",
+//   message: "something ",
+//   title: "something",
+//   description: "sdaf",
+//   mainBranch: "temp-check/gh-actions",
+//   targetBranch: "temp-check/gh-actions",
+// };
+
+// const temp = async () => {
+//   const octokit = new Octokit({
+//     auth: options.token,
+//     baseUrl: "https://api.github.com",
+//   });
+//   const commit = await getCurrentCommit(
+//     octokit,
+//     "staging-tags",
+//     "anki872198",
+//     "CI-CD-Check-Branch"
+//   );
+//   console.log("1", commit);
+//   const blobData = await octokit.git.createBlob({
+//     owner: "anki872198",
+//     repo: "CI-CD-Check-Branch",
+//     content: fs.readFileSync(
+//       "src/example/apps/account-service/overlays/staging/patch-deployment.yml",
+//       "utf8"
+//     ),
+//     encoding: "utf-8",
+//   });
+//   console.log("2", blobData.data);
+
+//   const { data } = await octokit.git.createTree({
+//     owner: "anki872198",
+//     repo: "CI-CD-Check-Branch",
+//     tree: [
+//       {
+//         path: "apps/account-service/overlays/staging/patch-deployment.yml",
+//         mode: `100644`,
+//         type: `blob`,
+//         sha: blobData.data.sha,
+//       },
+//     ],
+//     base_tree: commit.treeSha,
+//   });
+//   console.log("3", data.sha);
+
+//   const { data: commitData } = await octokit.git.createCommit({
+//     owner: "anki872198",
+//     repo: "CI-CD-Check-Branch",
+//     message: options.message,
+//     tree: data.sha,
+//     parents: [commit.commitSha],
+//     author: {
+//       name: "github-actions[bot]",
+//       email: "2525789+github-actions[bot]@users.noreply.github.com",
+//     },
+//   });
+//   console.log("4", commitData);
+//   const branchPushData = await octokit.git.updateRef({
+//     owner: "anki872198",
+//     repo: "CI-CD-Check-Branch",
+//     ref: `heads/staging-tags`,
+//     sha: commitData.sha,
+//   });
+//   console.log("5", branchPushData);
+// };
+// temp();
+
+// console.log(
+//   Buffer.from(
+//     "YXBpVmVyc2lvbjogYXBwcy92MQpraW5kOiBEZXBsb3ltZW50Cm1ldGFkYXRh\nOgogIG5hbWU6IGRhc2hib2FyZC11aQpzcGVjOgogIHRlbXBsYXRlOgogICAg\nc3BlYzoKICAgICAgY29udGFpbmVyczoKICAgICAgICAtIG5hbWU6IGRhc2hi\nb2FyZC11aQogICAgICAgICAgaW1hZ2U6IGF1c3RyYWxpYS1zb3V0aGVhc3Qx\nLWRvY2tlci5wa2cuZGV2L3ZpdGFsLWNvbnRhY3QtMzAwODA1L3Bvd2VybGVk\nZ2VyLXBsYXRmb3JtL2FjY291bnQtc2VydmljZToxNS41LjMK\n",
+//     "base64"
+//   ).toString("utf-8")
+// );

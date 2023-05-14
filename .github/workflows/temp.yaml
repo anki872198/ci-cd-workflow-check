@@ -2,10 +2,15 @@
 name: Release Sentry
 on:
   workflow_dispatch:
+    inputs:
+      parameters_json:
+        type: string
+        required: true
 
 jobs:
   sentry-release:
     runs-on: ubuntu-latest
+
     permissions:
       pull-requests: read
       contents: write
@@ -15,6 +20,5 @@ jobs:
         id: checkout
         with:
           fetch-depth: 0
-      - run: echo $JSON
-        env:
-          JSON: ${{ toJSON(github) }}
+      - run: echo "result=${{steps.something.something-else}}" >> $GITHUB_OUTPUT
+        id: result
