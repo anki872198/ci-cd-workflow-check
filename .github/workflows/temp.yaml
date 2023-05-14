@@ -16,4 +16,4 @@ jobs:
         with:
           fetch-depth: 0
       - run: |
-          echo ${{toJSON(github)}} ${{toJSON(job)}}
+          echo ${{github.event.client_payload.foo}}
