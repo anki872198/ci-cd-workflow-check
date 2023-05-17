@@ -1,0 +1,53 @@
+name: "Auto PR Creation"
+description: "Create a PR with sync value for an environment"
+author: "Ankit Pradhan"
+inputs:
+  workDir:
+    required: false
+    description: "Working Directory"
+    default: "."
+  createPR:
+    required: true
+    description: "Create a PR"
+  mainBranch:
+    required: false
+    description: "Main Branch for Repo"
+    default: "main"
+  targetBranch:
+    required: false
+    description: "target branch for PR"
+    default: "main"
+  repo:
+    required: true
+    description: "PowerLedger/tracex-kubernetes format"
+  services:
+    required: true
+    description: "Comma Separated services value that were changed in the push"
+  value:
+    required: true
+    description: "New property value"
+  environment:
+    required: true
+    description: "Which Environment to Create PR for"
+  message:
+    required: true
+    description: "Commit message for the value update"
+  title:
+    required: false
+    description: "Title of the created pull request"
+    default: ""
+  description:
+    required: false
+    description: "Description of the created pull request"
+    default: ""
+  labels:
+    required: true
+    description: "Labels to Attach"
+  token:
+    required: false
+    description: "GitHub AuthToken for Authorization"
+    default: ${{ github.token }}
+
+runs:
+  using: "node16"
+  main: "dist/main.js"

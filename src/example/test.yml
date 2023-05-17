@@ -1,0 +1,23 @@
+name: "Auto Generate PR To Update Tags"
+on:
+  push:
+    branches: [main]
+
+jobs:
+  update-tags:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: "Test Auto PR Generation"
+        uses: "anki872198/ci-cd-workflow-check@master"
+        with:
+          mainBranch: main
+          targetBranch: main
+          repo: PowerLedger/tracex-kubernetes
+          services: "account-service, payment-service, orderbook-service"
+          environment: staging
+          message: "Temp Check"
+          createPR: true
+          labels: "staging-tags"
+          token: ${{secrets.GITHUB_TOKEN}}
+          workDir: "."
