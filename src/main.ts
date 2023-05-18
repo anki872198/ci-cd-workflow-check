@@ -7,6 +7,9 @@ import * as core from "@actions/core";
 
 const getRepoInfo = (repo: string) => repo.split("/");
 
+const serviceEmail = "dev@powerledger.io";
+const serviceUserName = "pl-machine-account";
+
 export enum Environment {
   Staging = "staging",
   Sandbox = "sandbox",
@@ -23,6 +26,9 @@ export type Options = {
   mainBranch: string;
   targetBranch: string;
   createPR: boolean;
+  syncWith: string;
+  branch: string;
+  directPush: boolean;
 };
 
 export const run = () => {
@@ -39,6 +45,9 @@ export const run = () => {
       description: core.getInput("description"),
       mainBranch: core.getInput("mainBranch"),
       targetBranch: core.getInput("targetBranch"),
+      syncWith: core.getInput("syncWith"),
+      branch: core.getInput("branch"),
+      directPush: core.getBooleanInput("directPush", { required: true }),
     },
     core.getInput("workDir")
   );
@@ -77,19 +86,14 @@ const updateAllImages = async (
 
     const filesContent: any[] = [];
     for await (const service of servicesArray) {
-      const file = `apps/${service.trim()}/overlays/${environment.trim()}/patch-deployment.yaml`;
+      const file = `apps/${service.trim()}/overlays/${environment.trim()}/patch-deployment.yml`;
       const filePath = path.join(process.cwd(), workDir, file);
 
       let contentNode = Parser.convert(filePath);
       let contentString = Parser.dump(contentNode);
 
       const initContent = contentString;
-      let refFile = "";
-      if (environment === "staging") {
-        refFile = `apps/${service.trim()}/overlays/development/patch-deployment.yaml`;
-      } else {
-        refFile = `apps/${service.trim()}/overlays/staging/patch-deployment.yaml`;
-      }
+      const refFile = `apps/${service.trim()}/overlays/${options.syncWith.trim()}/patch-deployment.yml`;
       const doc: any = Parser.convert(
         path.join(process.cwd(), workDir, refFile)
       );
@@ -128,7 +132,9 @@ const updateAllImages = async (
       return null;
     }
 
-    const branch = `${environment}-tags`;
+    const branch = options.directPush
+      ? options.mainBranch
+      : options.branch || `${environment}-tags`;
     const { commitSha, treeSha } = await getCurrentCommit(
       octokit,
       branch,
@@ -180,8 +186,10 @@ const updateAllImages = async (
       tree: newTreeSha,
       parents: [commitSha],
       author: {
-        name: "github-actions[bot]",
-        email: "2525789+github-actions[bot]@users.noreply.github.com",
+        name: options.directPush ? serviceUserName : "github-actions[bot]",
+        email: options.directPush
+          ? serviceEmail
+          : "2525789+github-actions[bot]@users.noreply.github.com",
       },
     });
 
@@ -192,7 +200,7 @@ const updateAllImages = async (
 
     core.debug(`Complete`);
 
-    if (options.createPR) {
+    if (options.createPR && !options.directPush) {
       await createPullRequest(branch, options, octokit, repoOwner, repo);
     }
   } catch (e) {
@@ -324,4 +332,23 @@ export async function createPullRequest(
   core.debug(`Add Label: ${options.labels}`);
 }
 
-run();
+// run();
+
+const services = "account-service, orderbook-service";
+const environment = Environment.Sandbox;
+const options = {
+  createPR: true,
+  token: "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",
+  repo: "anki872198/CI-CD-Check-Branch",
+  labels: "sandbox-tags",
+  message: "something ",
+  title: "something",
+  description: "sdaf",
+  mainBranch: "temp-check/gh-actions",
+  syncWith: "development",
+  branch: "staging",
+  targetBranch: "temp-check/gh-actions",
+  directPush: true,
+};
+
+updateAllImages(services, environment, options, "./src/example/");

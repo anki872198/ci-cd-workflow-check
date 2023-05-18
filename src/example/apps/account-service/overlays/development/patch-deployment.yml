@@ -7,4 +7,4 @@ spec:
     spec:
       containers:
         - name: dashboard-ui
-          image: australia-southeast1-docker.pkg.dev/vital-contact-300805/powerledger-platform/account-service:15.5.4 # {"$imagepolicy": "flux-system:production-dashboard-ui"}
+          image: australia-southeast1-docker.pkg.dev/vital-contact-300805/powerledger-platform/account-service:50000.5.4 # {"$imagepolicy": "flux-system:production-dashboard-ui"}

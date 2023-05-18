@@ -34,6 +34,8 @@ const jsonpath_1 = __importDefault(require("jsonpath"));
 const rest_1 = require("@octokit/rest");
 const core = __importStar(require("@actions/core"));
 const getRepoInfo = (repo) => repo.split("/");
+const serviceEmail = "dev@powerledger.io";
+const serviceUserName = "pl-machine-account";
 var Environment;
 (function (Environment) {
     Environment["Staging"] = "staging";
@@ -51,6 +53,9 @@ const run = () => {
         description: core.getInput("description"),
         mainBranch: core.getInput("mainBranch"),
         targetBranch: core.getInput("targetBranch"),
+        syncWith: core.getInput("syncWith"),
+        branch: core.getInput("branch"),
+        directPush: core.getBooleanInput("directPush", { required: true }),
     }, core.getInput("workDir"));
 };
 exports.run = run;
@@ -79,18 +84,12 @@ const updateAllImages = async (services, environment, options, workDir = ".") =>
         const servicesArray = services.split(",");
         const filesContent = [];
         for await (const service of servicesArray) {
-            const file = `apps/${service.trim()}/overlays/${environment.trim()}/patch-deployment.yaml`;
+            const file = `apps/${service.trim()}/overlays/${environment.trim()}/patch-deployment.yml`;
             const filePath = path.join(process.cwd(), workDir, file);
             let contentNode = exports.Parser.convert(filePath);
             let contentString = exports.Parser.dump(contentNode);
             const initContent = contentString;
-            let refFile = "";
-            if (environment === "staging") {
-                refFile = `apps/${service.trim()}/overlays/development/patch-deployment.yaml`;
-            }
-            else {
-                refFile = `apps/${service.trim()}/overlays/staging/patch-deployment.yaml`;
-            }
+            const refFile = `apps/${service.trim()}/overlays/${options.syncWith.trim()}/patch-deployment.yml`;
             const doc = exports.Parser.convert(path.join(process.cwd(), workDir, refFile));
             core.setOutput("valueToReplace", doc.spec.template.spec.containers[0].image);
             contentNode = replace(doc.spec.template.spec.containers[0].image, contentNode);
@@ -114,7 +113,9 @@ const updateAllImages = async (services, environment, options, workDir = ".") =>
         if (!filesContent?.length) {
             return null;
         }
-        const branch = `${environment}-tags`;
+        const branch = options.directPush
+            ? options.mainBranch
+            : options.branch || `${environment}-tags`;
         const { commitSha, treeSha } = await (0, exports.getCurrentCommit)(octokit, branch, repoOwner, repo);
         core.debug(JSON.stringify({ baseCommit: commitSha, baseTree: treeSha }));
         const debugFiles = {};
@@ -153,15 +154,17 @@ const updateAllImages = async (services, environment, options, workDir = ".") =>
             tree: newTreeSha,
             parents: [commitSha],
             author: {
-                name: "github-actions[bot]",
-                email: "2525789+github-actions[bot]@users.noreply.github.com",
+                name: options.directPush ? serviceUserName : "github-actions[bot]",
+                email: options.directPush
+                    ? serviceEmail
+                    : "2525789+github-actions[bot]@users.noreply.github.com",
             },
         });
         core.debug(JSON.stringify({ createdCommit: commitData.sha }));
         core.setOutput("commit", commitData.sha);
         await (0, exports.updateBranch)(octokit, branch, commitData.sha, repoOwner, repo);
         core.debug(`Complete`);
-        if (options.createPR) {
+        if (options.createPR && !options.directPush) {
             await createPullRequest(branch, options, octokit, repoOwner, repo);
         }
     }
@@ -260,4 +263,21 @@ async function createPullRequest(branch, options, octokit, repoOwner, repo) {
     core.debug(`Add Label: ${options.labels}`);
 }
 exports.createPullRequest = createPullRequest;
-(0, exports.run)();
+// run();
+const services = "account-service, orderbook-service";
+const environment = Environment.Sandbox;
+const options = {
+    createPR: true,
+    token: "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",
+    repo: "anki872198/CI-CD-Check-Branch",
+    labels: "sandbox-tags",
+    message: "something ",
+    title: "something",
+    description: "sdaf",
+    mainBranch: "temp-check/gh-actions",
+    syncWith: "development",
+    branch: "staging",
+    targetBranch: "temp-check/gh-actions",
+    directPush: true,
+};
+updateAllImages(services, environment, options, "./src/example/");

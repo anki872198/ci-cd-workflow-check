@@ -7,4 +7,4 @@ spec:
     spec:
       containers:
         - name: dashboard-ui
-          image: australia-southeast1-docker.pkg.dev/vital-contact-300805/powerledger-platform/orderbook-service:5.4.3
+          image: australia-southeast1-docker.pkg.dev/vital-contact-300805/powerledger-platform/orderbook-service:5.4.7

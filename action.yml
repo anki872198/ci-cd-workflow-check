@@ -2,6 +2,18 @@ name: "Auto PR Creation"
 description: "Create a PR with sync value for an environment"
 author: "Ankit Pradhan"
 inputs:
+  syncWith:
+    required: false
+    description: "Which environment to sync PR to"
+    default: "development"
+  branch:
+    required: false
+    description: "Branch to push it to if directPush is false"
+    default: ""
+  directPush:
+    required: false
+    description: "Directly push to main branch"
+    default: "false"
   workDir:
     required: false
     description: "Working Directory"
@@ -23,9 +35,6 @@ inputs:
   services:
     required: true
     description: "Comma Separated services value that were changed in the push"
-  value:
-    required: true
-    description: "New property value"
   environment:
     required: true
     description: "Which Environment to Create PR for"
