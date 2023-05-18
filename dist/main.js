@@ -84,12 +84,12 @@ const updateAllImages = async (services, environment, options, workDir = ".") =>
         const servicesArray = services.split(",");
         const filesContent = [];
         for await (const service of servicesArray) {
-            const file = `apps/${service.trim()}/overlays/${environment.trim()}/patch-deployment.yml`;
+            const file = `apps/${service.trim()}/overlays/${environment.trim()}/patch-deployment.yaml`;
             const filePath = path.join(process.cwd(), workDir, file);
             let contentNode = exports.Parser.convert(filePath);
             let contentString = exports.Parser.dump(contentNode);
             const initContent = contentString;
-            const refFile = `apps/${service.trim()}/overlays/${options.syncWith.trim()}/patch-deployment.yml`;
+            const refFile = `apps/${service.trim()}/overlays/${options.syncWith.trim()}/patch-deployment.yaml`;
             const doc = exports.Parser.convert(path.join(process.cwd(), workDir, refFile));
             core.setOutput("valueToReplace", doc.spec.template.spec.containers[0].image);
             contentNode = replace(doc.spec.template.spec.containers[0].image, contentNode);
@@ -162,7 +162,7 @@ const updateAllImages = async (services, environment, options, workDir = ".") =>
         });
         core.debug(JSON.stringify({ createdCommit: commitData.sha }));
         core.setOutput("commit", commitData.sha);
-        await (0, exports.updateBranch)(octokit, branch, commitData.sha, repoOwner, repo);
+        await (0, exports.updateBranch)(octokit, branch, commitData.sha, repoOwner, repo, options.directPush);
         core.debug(`Complete`);
         if (options.createPR && !options.directPush) {
             await createPullRequest(branch, options, octokit, repoOwner, repo);
@@ -183,13 +183,14 @@ function replace(value, content) {
     return copy;
 }
 exports.replace = replace;
-const updateBranch = async (octo, branch, commitSha, repoOwner, repo) => {
+const updateBranch = async (octo, branch, commitSha, repoOwner, repo, force = false) => {
     try {
-        const data = await octo.git.updateRef({
+        await octo.git.updateRef({
             owner: repoOwner,
             repo,
             ref: `heads/${branch}`,
             sha: commitSha,
+            force: true,
         });
     }
     catch (error) {
@@ -263,21 +264,21 @@ async function createPullRequest(branch, options, octokit, repoOwner, repo) {
     core.debug(`Add Label: ${options.labels}`);
 }
 exports.createPullRequest = createPullRequest;
-// run();
-const services = "account-service, orderbook-service";
-const environment = Environment.Sandbox;
-const options = {
-    createPR: true,
-    token: "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",
-    repo: "anki872198/CI-CD-Check-Branch",
-    labels: "sandbox-tags",
-    message: "something ",
-    title: "something",
-    description: "sdaf",
-    mainBranch: "temp-check/gh-actions",
-    syncWith: "development",
-    branch: "staging",
-    targetBranch: "temp-check/gh-actions",
-    directPush: true,
-};
-updateAllImages(services, environment, options, "./src/example/");
+(0, exports.run)();
+// const services = "account-service, orderbook-service";
+// const environment = Environment.Sandbox;
+// const options = {
+//   createPR: true,
+//   token: "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",
+//   repo: "anki872198/CI-CD-Check-Branch",
+//   labels: "sandbox-tags",
+//   message: "something ",
+//   title: "something",
+//   description: "sdaf",
+//   mainBranch: "temp-check/gh-actions",
+//   syncWith: "development",
+//   branch: "staging",
+//   targetBranch: "temp-check/gh-actions",
+//   directPush: true,
+// };
+// updateAllImages(services, environment, options, "./src/example/");

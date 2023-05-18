@@ -18,6 +18,11 @@ jobs:
           environment: staging
           message: "Temp Check"
           createPR: true
+          title: "Something is Wrong"
+          description: "Ok lets merge this"
           labels: "staging-tags"
           token: ${{secrets.GITHUB_TOKEN}}
           workDir: "."
+          syncWith: "staging"
+          directPush: "false"
+          branch: "staging-images"

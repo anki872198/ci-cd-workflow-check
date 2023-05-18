@@ -86,14 +86,14 @@ const updateAllImages = async (
 
     const filesContent: any[] = [];
     for await (const service of servicesArray) {
-      const file = `apps/${service.trim()}/overlays/${environment.trim()}/patch-deployment.yml`;
+      const file = `apps/${service.trim()}/overlays/${environment.trim()}/patch-deployment.yaml`;
       const filePath = path.join(process.cwd(), workDir, file);
 
       let contentNode = Parser.convert(filePath);
       let contentString = Parser.dump(contentNode);
 
       const initContent = contentString;
-      const refFile = `apps/${service.trim()}/overlays/${options.syncWith.trim()}/patch-deployment.yml`;
+      const refFile = `apps/${service.trim()}/overlays/${options.syncWith.trim()}/patch-deployment.yaml`;
       const doc: any = Parser.convert(
         path.join(process.cwd(), workDir, refFile)
       );
@@ -196,7 +196,14 @@ const updateAllImages = async (
     core.debug(JSON.stringify({ createdCommit: commitData.sha }));
     core.setOutput("commit", commitData.sha);
 
-    await updateBranch(octokit, branch, commitData.sha, repoOwner, repo);
+    await updateBranch(
+      octokit,
+      branch,
+      commitData.sha,
+      repoOwner,
+      repo,
+      options.directPush
+    );
 
     core.debug(`Complete`);
 
@@ -228,14 +235,16 @@ export const updateBranch = async (
   branch: string,
   commitSha: string,
   repoOwner: string,
-  repo: string
+  repo: string,
+  force = false
 ): Promise<void> => {
   try {
-    const data = await octo.git.updateRef({
+    await octo.git.updateRef({
       owner: repoOwner,
       repo,
       ref: `heads/${branch}`,
       sha: commitSha,
+      force: true,
     });
   } catch (error) {
     core.info(
@@ -332,23 +341,23 @@ export async function createPullRequest(
   core.debug(`Add Label: ${options.labels}`);
 }
 
-// run();
+run();
 
-const services = "account-service, orderbook-service";
-const environment = Environment.Sandbox;
-const options = {
-  createPR: true,
-  token: "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",
-  repo: "anki872198/CI-CD-Check-Branch",
-  labels: "sandbox-tags",
-  message: "something ",
-  title: "something",
-  description: "sdaf",
-  mainBranch: "temp-check/gh-actions",
-  syncWith: "development",
-  branch: "staging",
-  targetBranch: "temp-check/gh-actions",
-  directPush: true,
-};
+// const services = "account-service, orderbook-service";
+// const environment = Environment.Sandbox;
+// const options = {
+//   createPR: true,
+//   token: "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",
+//   repo: "anki872198/CI-CD-Check-Branch",
+//   labels: "sandbox-tags",
+//   message: "something ",
+//   title: "something",
+//   description: "sdaf",
+//   mainBranch: "temp-check/gh-actions",
+//   syncWith: "development",
+//   branch: "staging",
+//   targetBranch: "temp-check/gh-actions",
+//   directPush: true,
+// };
 
-updateAllImages(services, environment, options, "./src/example/");
+// updateAllImages(services, environment, options, "./src/example/");
